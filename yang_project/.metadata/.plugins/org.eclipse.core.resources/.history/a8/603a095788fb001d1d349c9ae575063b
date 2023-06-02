@@ -1,0 +1,22 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+    pageEncoding="UTF-8"%>
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>글 상세 페이지</title>
+</head>
+<body>
+		<h1>글 상세 페이지</h1>
+		<hr><br>
+		<form action="/brd/update" method="post">
+		제목 : <input type="text" name="title" value=${title } readonly="readonly" }/><br>
+		작성자 : <input type="text" name="writer" value="${writer }" readonly="readonly"/><br>
+		내용 : <textarea name="content" readonly="readonly">${content }</textarea><br>
+		<button type="submit">작성</button>
+		</form>
+		<a href="/"><button type="button">수정하기</button></a>
+		<a href="/brd/list"><button type="button">뒤로가기</button></a>
+		
+</body>
+</html>

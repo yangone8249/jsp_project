@@ -1,0 +1,29 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+    pageEncoding="UTF-8"%>
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Insert title here</title>
+</head>
+<body>
+@Override
+   public int insert(ProductVO pvo) {
+      System.out.println(">>> DAO 접근 완료");
+      query = "insert into product(pname, price, madeby) values(?,?,?)";
+      try {
+         pst = conn.prepareStatement(query);
+         pst.setString(1, pvo.getPname());
+         pst.setInt(2, pvo.getPrice());
+         pst.setString(3, pvo.getMadeby());
+         // executeUpdate() : insert, update, delete
+         // executeQuery() : select
+         return pst.executeUpdate();
+      } catch (SQLException e) {
+         System.out.println("insert error");
+         e.printStackTrace();
+      }
+      return 0;
+   }
+</body>
+</html>

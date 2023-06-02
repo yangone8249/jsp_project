@@ -1,0 +1,14 @@
+//화면에서 등록한 댓글내용을 컨트롤러로 전송 -> DB저장
+async function postCommentToServer(cmtData){
+	try{
+		const url = "/cmt/post";
+		const config={
+			method:'post',
+			headers:{
+				'Content-Type':'application/json; charset=utf-8'
+			}
+		}
+	}catch(error){
+		console.log(error);	
+	}
+}

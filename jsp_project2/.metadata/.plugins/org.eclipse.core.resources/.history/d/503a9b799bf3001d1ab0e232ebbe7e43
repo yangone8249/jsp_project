@@ -1,0 +1,32 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+    pageEncoding="UTF-8"%>
+ <%@ taglib uri="java.sun.com/jsp/jstl/core" prefix="c" %>   
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>list</title>
+</head>
+<body>
+	<h1>회원전체목록</h1>
+	<table border="1">
+	<tr>
+		<td>num</td>
+		<td>id</td>
+		<td>password</td>
+		<td>email</td>
+		<td>age</td>
+	</tr>	
+		<c:forEach var="list" items="${list}">
+			<tr>
+				<td>${list.num}</td>
+				<td>${list.id}</td>
+				<td>${list.password}</td>
+				<td>${list.email}</td>
+				<td>${list.age}</td>
+			</tr>
+		</c:forEach>
+	</table>
+	
+</body>
+</html>

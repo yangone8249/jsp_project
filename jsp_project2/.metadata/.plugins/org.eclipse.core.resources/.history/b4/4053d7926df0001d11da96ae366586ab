@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="DEBUG"> <!-- debug 상태로 진행 -->
+	<appenders>
+		<console name="Console" target="SYSTEM_OUT"> <!-- system_out은 하단에 콘솔을 띄울것을 의미한다. -->
+			
+		</console>
+	</appenders>
+</Configuration>

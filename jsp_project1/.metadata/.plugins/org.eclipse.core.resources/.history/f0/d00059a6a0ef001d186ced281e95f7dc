@@ -1,0 +1,19 @@
+package service;
+
+import domain.ProductVO;
+import repository.dao;
+
+public class ProductService implements Service {
+
+	private DAO dao;
+	
+	public public ProductService(){
+		dao = new ProductDAO();
+	}
+	@Override
+	public int register(ProductVO pvo) {
+		System.out.println(">>> register service 진입!!");
+		return ;
+	}
+
+}

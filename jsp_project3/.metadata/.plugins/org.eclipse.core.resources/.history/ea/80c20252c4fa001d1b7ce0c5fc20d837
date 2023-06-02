@@ -1,0 +1,14 @@
+package handler;
+
+import org.slf4j.LoggerFactory;
+
+public class FileHandler {
+	private static Logger log = LoggerFactory.getILoggerFactory(FileHandler.class);
+	
+	//파일이름과 경로를 받아서 파일을 삭제하는 메서드
+	//리턴타입 int => 잘 삭제되었는지 확인 isOk
+	public int deleteFile(String imageFileName, String savePath) {
+		
+	}
+	
+}

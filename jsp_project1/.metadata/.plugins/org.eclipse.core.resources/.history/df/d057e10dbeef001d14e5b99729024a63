@@ -1,0 +1,42 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+    pageEncoding="UTF-8"%>
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>제품 상세 페이지</title>
+</head>
+<body>
+	<h1>detail.jsp</h1>
+	
+	<table>
+		<tr>
+			<td>
+				번호 : ${param.pno }
+			</td>
+		</tr>
+		<tr>
+			<td>
+				상품명 : 
+			</td>
+		</tr>	
+		<tr>
+			<td>
+				가격 : <input type="text" name="price">
+			</td>
+		</tr>
+		<tr>
+			<td>
+				등록일자 : <input type="text" name="regdate">
+			</td>
+		</tr>
+		<tr>
+			<td>
+				세부내용 : <input type="text" name="madeby">
+			</td>
+		</tr>		
+	</table>
+	<button type="button"><a href="/modify.pd">수정</a></button>
+	<button type="button"><a href="/modify.pd">삭제</a></button>
+</body>
+</html>

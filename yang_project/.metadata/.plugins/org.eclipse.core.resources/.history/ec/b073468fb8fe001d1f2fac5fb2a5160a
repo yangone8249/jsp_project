@@ -1,0 +1,184 @@
+package controller;
+
+import java.io.IOException;
+import java.util.List;
+
+import javax.servlet.RequestDispatcher;
+import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import domain.BoardVO;
+import domain.PagingVO;
+import handler.PagingHandler;
+import service.BoardService;
+import service.BoardServiceImpl;
+
+
+@WebServlet("/brd/*")
+public class BoardController extends HttpServlet {
+	private static final long serialVersionUID = 1L;
+    private static final Logger log = LoggerFactory.getLogger(BoardController.class);
+    private RequestDispatcher rdp;
+    private BoardService bsv;
+    private int isOk;
+    private String destPage;
+    private BoardVO bvo;
+
+    
+    public BoardController() {
+        bsv = new BoardServiceImpl();
+       
+    }
+
+
+	protected void service(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		request.setCharacterEncoding("utf-8");
+    	response.setContentType("text/html; charset=utf-8");
+    	
+    	String uri = request.getRequestURI();
+    	log.info(">>> uri : "+uri);
+    	String path = uri.substring(uri.lastIndexOf("/")+1);
+    	log.info(">>> path : "+path);
+    	
+    	
+    	switch (path) {
+		case "create":
+			try {
+				String title = request.getParameter("title");
+				String writer = request.getParameter("writer");
+				String content = request.getParameter("content");
+				
+				bvo = new BoardVO(title,writer,content);
+				
+				bsv.insert(bvo);
+				
+			} catch (Exception e) {
+				log.info("create error");
+				e.printStackTrace();
+			}
+			destPage = "list";
+			break;
+		case "page":
+			try {
+				int pageNo = 1;
+				int qty = 10;
+				String type = "";
+				String keyword = "";
+				
+				if(request.getParameter("pageNo") != null) {
+					pageNo = Integer.parseInt(request.getParameter("pageNo"));
+					qty = Integer.parseInt(request.getParameter("qty"));
+					log.info("type : "+type);
+					log.info("keyword : "+keyword);
+				}
+				if(request.getParameter("type") != null) {
+					type = request.getParameter("type");
+					keyword = request.getParameter("keyword");
+				}
+				PagingVO pgvo = new PagingVO(pageNo, qty);
+				pgvo.setType(type); //Search할 타입, keyword를 set으로 지정한다.
+				pgvo.setKeyword(keyword);
+				log.info(pgvo.toString());
+				
+				//전체 페이지 개수
+				int totCount = bsv.getTotal(pgvo); //전체 페이지 개수를 요청
+				log.info("totCount : "+totCount);
+				//limit를 이용한 selectList를 호출 (StartPage, qty)
+				List<BoardVO> list = bsv.getPageList(pgvo);
+				log.info("List : "+list.size()); //한페이지에 나와야하는 리스트 출력
+				PagingHandler ph = new PagingHandler(pgvo, totCount);
+				
+				request.setAttribute("pgh", ph);
+				request.setAttribute("list", list);
+				log.info("pageList성공!!");
+				destPage = "/board/list.jsp";
+				
+			} catch (Exception e) {
+				log.info("page error");
+				e.printStackTrace();
+			}
+			break;
+//		case "list":
+//			try {
+//				List<BoardVO> list = bsv.list();
+//				
+//				request.setAttribute("list", list);
+//			} catch (Exception e) {
+//				log.info("list error");
+//				e.printStackTrace();
+//			}
+//			destPage = "/board/BoardList.jsp";
+//			break;
+		case "detail":
+			try {
+				request.setAttribute("detail", bsv.detail(Integer.parseInt(request.getParameter("bno"))));
+				bsv.count(Integer.parseInt(request.getParameter("bno")));
+			} catch (Exception e) {
+				log.info("detail error");
+				e.printStackTrace();
+			}			
+			destPage = "/board/BoardDetail.jsp";
+			break;
+		case "update":
+				try {
+					request.setAttribute("update", bsv.detail(Integer.parseInt(request.getParameter("bno"))));
+				} catch (Exception e) {
+					log.info("detail error");
+					e.printStackTrace();
+				}	
+			destPage = "/board/BoardUpdate.jsp";
+			break;
+		case "modify":
+			try {
+				int bno = Integer.parseInt(request.getParameter("bno"));
+				String title = request.getParameter("title");
+				String content = request.getParameter("content");
+				
+				log.info("bno : "+bno);
+				log.info("title : "+title);
+				log.info("content : "+content);
+				bsv.update(new BoardVO(title, content, bno));
+			} catch (Exception e) {
+				log.info("detail error");
+				e.printStackTrace();
+			}
+			
+			destPage = "page";
+			break;
+		case "remove":
+			try {
+				bsv.remove(Integer.parseInt(request.getParameter("bno")));
+			} catch (Exception e) {
+				log.info("detail error");
+				e.printStackTrace();
+			}
+			
+			destPage = "page";
+			break;
+		default:
+			break;
+		}
+    	log.info(">>> destPage : "+destPage);
+    	rdp = request.getRequestDispatcher(destPage);
+    	rdp.forward(request, response);
+	}
+
+
+	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		
+		service(request, response);
+	}
+
+
+	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+	
+		service(request, response);
+	}
+
+}

@@ -1,0 +1,71 @@
+package domain;
+
+public class ProductVO {
+/*      pno int auto_increment,
+     pname varchar(20),
+     price int,
+     regdate datetime default now(),
+     madeby varchar(45),
+
+ */
+	private int pno;
+	private String pname;
+	private int price;
+	private String regdate;
+	private String madeby;
+	
+	public ProductVO() {}
+	
+	
+
+	public int getPno() {
+		return pno;
+	}
+
+	public void setPno(int pno) {
+		this.pno = pno;
+	}
+
+	public String getPname() {
+		return pname;
+	}
+
+	public void setPname(String pname) {
+		this.pname = pname;
+	}
+
+	public int getPrice() {
+		return price;
+	}
+
+	public void setPrice(int price) {
+		this.price = price;
+	}
+
+	public String getRegdate() {
+		return regdate;
+	}
+
+	public void setRegdate(String regdate) {
+		this.regdate = regdate;
+	}
+
+	public String getMadeby() {
+		return madeby;
+	}
+
+	public void setMadeby(String madeby) {
+		this.madeby = madeby;
+	}
+	
+	// 상품등록 pname, price, madeby (num, date는 기본값 자동적용)
+	
+	// 상품리스트 pno, pname, regdate
+	
+	// 상품수정 pno, pname, price, madeby
+	
+	// 상품상세 (찾기) all
+	
+	// 상품삭제
+	
+}

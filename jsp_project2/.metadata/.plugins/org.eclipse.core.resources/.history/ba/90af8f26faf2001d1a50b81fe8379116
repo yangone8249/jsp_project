@@ -1,0 +1,24 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+    pageEncoding="UTF-8"%>
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>list</title>
+</head>
+<body>
+	<h1>회원전체목록</h1>
+	<table>
+		<c:forEach var="list" items="${request.getAttribute("list")}">
+			<tr>
+				<td></td>
+				<td>${list.getUserId()}</td>
+				<td>${list.password}</td>
+				<td>${list.email}</td>
+				<td>${list.age}</td>
+			</tr>
+		</c:forEach>
+	</table>
+	
+</body>
+</html>

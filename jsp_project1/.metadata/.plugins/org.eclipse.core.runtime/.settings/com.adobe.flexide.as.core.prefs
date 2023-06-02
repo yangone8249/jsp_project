@@ -1,0 +1,15 @@
+asASDocBold=false
+asBracketBold=false
+asCommentBold=false
+asCommentStrikethrough=false
+asCommentUnderline=false
+asFunctionBold=true
+asInterfaceBold=true
+asOperatorBold=false
+asPackageBold=true
+asReservedStrikethrough=false
+asReservedUnderline=false
+asStringBold=false
+asStringStrikethrough=false
+asStringUnderline=false
+eclipse.preferences.version=1

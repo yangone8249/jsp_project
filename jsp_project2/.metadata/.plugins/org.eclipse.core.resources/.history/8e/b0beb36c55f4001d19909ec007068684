@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+  "https://mybatis.org/dtd/mybatis-3-mapper.dtd"> <!-- mybatis 등록해주기!! 필수 -->
+  <mapper namespace="BoardMapper">
+  <!-- SQL구문 작성 -->
+  	<insert id="insert" parameterType="bvo">
+  		insert INTO board (title, writer, content)
+			values(#{title}, #{writer}, #{content})
+  	</insert>
+  	<select id="list" resultType="bvo">
+  		select * from board
+  	</select>
+  	<update id="update" parameterType="bvo">
+  		update board set title = #{title}, content = #{content}, regdate = now() where num = #{bno}
+  	</update>
+  	<delete id="remove" parameterType="int">
+  		delete from board where num = #{bno}
+  	</delete>
+
+  </mapper>

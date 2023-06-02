@@ -1,0 +1,16 @@
+package service;
+
+public class BoardServiceImpl implements BoardService {
+
+	private static final Logger log = LoggerFactory.getLogger(BoardServiceImpl.class);
+	private BoardDAO mdao;
+	
+	public MemberServiceImpl() {
+		mdao = new MemberDAOImpl();
+	}
+	
+	@Override
+	public void insert(BoardVO bvo) {
+	}
+
+}

@@ -1,0 +1,16 @@
+package orm;
+
+import java.sql.Connection;
+
+public class DatabaseConnector {
+	
+	// 객체생성을 private으로 지정한다. (싱글톤 방식)
+	// 객체의 유일성을 보장하기 위해 사용
+	private static DatabaseConnector dbc = new DatabaseConnector();
+	private Connection conn = null; //DB관련 접속을 위한 규격이다.
+
+
+
+
+
+}

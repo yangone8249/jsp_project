@@ -1,0 +1,11 @@
+package repository;
+
+import domain.MemberVO;
+
+public interface MemberDAO {
+
+	void insert(MemberVO mvo);
+
+	MemberVO select(MemberVO mvo);
+
+}

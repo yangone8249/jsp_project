@@ -1,0 +1,303 @@
+package controller;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.List;
+
+import javax.servlet.RequestDispatcher;
+import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.apache.commons.fileupload.FileItem;
+import org.apache.commons.fileupload.disk.DiskFileItemFactory;
+import org.apache.commons.fileupload.servlet.ServletFileUpload;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.mysql.cj.Session;
+
+import domain.PagingVO;
+import domain.boardVO;
+import handler.FileHandler;
+import handler.PagingHandler;
+import net.coobird.thumbnailator.Thumbnailator;
+import net.coobird.thumbnailator.Thumbnails;
+import service.boardService;
+import service.boardServiceImpl;
+
+/**
+ * Servlet implementation class boardController
+ */
+@WebServlet("/brd/*")
+public class boardController extends HttpServlet {
+	private static final long serialVersionUID = 1L;
+	private static final Logger log = LoggerFactory.getLogger(boardController.class);
+	private RequestDispatcher rdp;
+	private boardService bsv;
+	private String destPage;
+	private boardVO bvo = new boardVO();
+	private int num;
+	private String title;
+	private String writer;
+	private String regdate;
+	private String detail;
+	private int counter;
+	private String savePath;
+	private int isOk;
+    public boardController() {
+       bsv = new boardServiceImpl();
+    }
+
+	protected void service(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		request.setCharacterEncoding("utf-8");
+		response.setContentType("text/html; charset=utf-8");
+		String uri = request.getRequestURI();
+		log.info(">>> uri : "+uri);
+		String path = uri.substring(uri.lastIndexOf("/")+1);
+		log.info(">>> path : "+path);
+		
+		switch (path) {
+		case "writer":
+			
+			request.setAttribute("id", request.getParameter("id"));
+			destPage = "/board/create.jsp";
+			break;
+		case "create":
+			//파일을 업로드할 물리적 경로를 설정
+			try {
+				
+			
+			savePath = getServletContext().getRealPath("/_fileUpload");
+			log.info(">>> 파일저장경로 : "+savePath); //실제 파일경로를 info로 출력함.
+			File fileDir = new File(savePath); //파일경로를 담은 객체이다.
+			
+			DiskFileItemFactory fileItemFactory = new DiskFileItemFactory(); //commons 경로로 임포트
+			fileItemFactory.setRepository(fileDir); //setPepository에다 파일저장위치를 지정한다.
+			fileItemFactory.setSizeThreshold(2*1024*1024); //file을 저장하기위한 임시메모리 설정 : byte단위로 지정한다. 
+			// 기본용량을 2byte * 1000배 * 1000배 = byte:KB:MB = 2메가바이트로 지정.
+				
+			boardVO bvo = new boardVO(); //bvo를 빈 생성자로 생성 후 각 데이터를 setter하여 mapper쿼리문으로 전달한다.
+			//multipart/form-data 형식으로 넘어온 request의 객체를 다루기 쉽게 변환해주는 역할을 한다.
+			ServletFileUpload fileUpload = new ServletFileUpload(fileItemFactory); // form-data를 다루기쉽게 변환해준다.
+			
+			List<FileItem> itemList = fileUpload.parseRequest(request);//fileItem이라는 객체를 List형식으로 담을예정.
+			for(FileItem item : itemList) { //List로 정렬되어있는 FileItem에 대한 객체를 하나씩 반복한다.
+				switch (item.getFieldName()) { // item에 있는 값을 getFieldName으로 가져온다. (key값을 가져온다)
+				case "title":
+					bvo.setTitle(item.getString("utf-8")); // item에 대한 값을 문자열로 추출하여 title에 set을 한다.
+					// 하지만 문자열을 저장할때 인코딩 형식을 지정하여 전달해야하기때문에 인코딩을 적용한다.
+					break;
+				case "writer":
+					bvo.setWriter(item.getString("utf-8"));
+					break;
+				case "detail":
+					bvo.setDetail(item.getString("utf-8"));
+					break;
+				case "image_file":
+					//이미지는 선택이기때문에 있는지 없는지 체크해야한다.
+					if(item.getSize() > 0) {//데이터의 크기가 0보다 크면 존재하는것이니, item의 Size를 조건으로 if문 지정한다.
+						//getName : 경로를 포함한 파일이름이 전달된다. ex) "경로~"/fileName.jpg
+						String fileName = item.getName().substring(item.getName().lastIndexOf("/")+1);
+						//1. 파일경로를 뺀 후 파일명을 추출하기위해 substring을 적용한다.
+						//2. 저장할 file에 유일한 고유번호를 붙이기위해 현재 시간을 붙인다.
+						fileName = System.currentTimeMillis()+"_"+fileName; //System.currentTimeMillis() : 밀리초단위의 현재시간 추출
+						log.info(">>> fileName : "+fileName); //"현재시간"_"파일명" 이렇게 저장될 것이다.
+						File uploadFilePath = new File(fileDir+File.separator+fileName); //File객체를 생성하며, "파일경로"+"\"+"파일명"
+						log.info(">>> 실제파일경로 : "+uploadFilePath); 
+						
+						//저장기능
+						try {
+							item.write(uploadFilePath); //write메서드로 : 자바 객체를 디스크에 저장하기.
+							bvo.setImage(fileName); //파일의 경로만 bvo의 Image_file변수에 set한다.
+							
+							//썸네일 작업 : List.jsp에서의 메모리 사용량의 증가를 막는다.
+							Thumbnails.of(uploadFilePath).size(75, 75).toFile(new File(fileDir+File.separator+"th_"+fileName));
+							//라이브러리에 존재하는 Thumbnails.of() 안에 실제 업로드할 파일경로를 넣는다.
+							//.size() : 저장할 해당 썸네일에 대한 사이즈를 지정해줘야한다.
+							//.toFile() : 파일객체를 생성하면서 저장하고, uploadFilePath와 같은경로에 "th_"를 덧붙여 썸네일전용 파일경로를 새롭게 지정한다.
+							
+						} catch (Exception e) {
+							log.info(">>> error... file writer on disk fail!!!"); 
+							e.printStackTrace();
+						}
+						
+					}
+					break;
+				default:
+					break;
+				}
+			}
+			bsv.create(bvo);
+			System.out.println("게시글 작성완료!");
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+			
+			destPage = "page";
+			break;
+		case "list":
+			List<boardVO> list = bsv.list();
+			request.setAttribute("list", list);
+			destPage = "/board/list.jsp";
+			break;
+		case "page":
+			try {
+				int pageNo = 1;
+				int qty = 10;
+				String type = "";
+				String keyword = "";
+				
+				if(request.getParameter("pageNo") != null) {
+					pageNo = Integer.parseInt(request.getParameter("pageNo"));
+					qty = Integer.parseInt(request.getParameter("qty"));
+					log.info("type:"+type+"\nkeyword:"+keyword);
+				}
+				if(request.getParameter("type") != null) {
+					type = request.getParameter("type");
+					keyword = request.getParameter("keyword");
+				}
+				PagingVO pgvo = new PagingVO(pageNo, qty);
+				pgvo.setType(type);//Search할 타입, keyword를 set으로 지정하기.
+				pgvo.setKeyword(keyword);
+				log.info(pgvo.toString());
+				
+				//전체 페이지 개수
+				int totCount = bsv.getTotal(pgvo); //전체 페이지 개수를 요청.
+				log.info("totCount : "+totCount);
+				//limit를 이용한 selectList를 호출 (startPage, qty)
+				list = bsv.getPageList(pgvo); 
+				log.info("List : "+list.size());//한페이지에 나와야하는 리스트 출력
+				PagingHandler ph = new PagingHandler(pgvo, totCount);
+				request.setAttribute("pgh", ph);
+				request.setAttribute("list", list);
+				request.setAttribute("count", totCount);
+				log.info("pageList 성공!!");
+				destPage = "/board/list.jsp";
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+			break;
+		
+		case "detail":
+			
+			request.setAttribute("num", request.getParameter("num"));
+			request.setAttribute("title", request.getParameter("title"));
+			request.setAttribute("writer", request.getParameter("writer"));
+			request.setAttribute("detail", request.getParameter("detail"));
+			request.setAttribute("regdate", request.getParameter("regdate"));
+			request.setAttribute("counter", request.getParameter("counter"));
+			request.setAttribute("image", request.getParameter("image"));
+			destPage = "/board/detail.jsp";
+			break;
+		case "modify":
+			request.setAttribute("regdate", request.getParameter("regdate"));
+			request.setAttribute("num", request.getParameter("num"));
+			request.setAttribute("title", request.getParameter("title"));
+			request.setAttribute("writer", request.getParameter("writer"));
+			request.setAttribute("detail", request.getParameter("detail"));
+			request.setAttribute("image", request.getParameter("image"));
+			log.info(request.getParameter("title"));
+			destPage = "/board/update.jsp";
+			break;
+		case "update":
+			try {
+				savePath = getServletContext().getRealPath("/_fileUpload"); //eclipse에 있는 _fileUpload폴더안에 저장하기위한 경로 설정
+				File fileDir = new File(savePath);
+				
+				DiskFileItemFactory fileItemFactory = new DiskFileItemFactory();
+				fileItemFactory.setRepository(fileDir); // fileUpload폴더 경로를 설정
+				fileItemFactory.setSizeThreshold(2*1024*1024); // 2MB로 저장공간 확보
+				
+				boardVO bvo = new boardVO();
+				
+				ServletFileUpload fileUpload = new ServletFileUpload(fileItemFactory); //form-data를 사용하기위한 데이터로 형변환해줌.
+				log.info(">>> update준비!");
+				
+				List<FileItem> itemList = fileUpload.parseRequest(request); //FileItem
+				
+				String old_file = null; //기존의 파일에 대한 정보
+				for(FileItem item : itemList) {
+					switch(item.getFieldName()) {
+					case "num":
+						bvo.setNum(Integer.parseInt(item.getString("utf-8")));
+						break;
+					case "title":
+						bvo.setTitle(item.getString("utf-8"));
+						break;
+					case "writer":
+						bvo.setWriter(item.getString("utf-8"));
+						break;
+					case "content":
+						bvo.setDetail(item.getString("utf-8"));
+						break;
+					case "image":
+						//기존 파일의 이름을 가져와서 담기
+						old_file = item.getString("utf-8");
+						break;
+					case "new_file":
+						if(item.getSize() > 0) { //item의 새로운파일이 등록되있으면 size가 0보다 크게된다.
+							if(old_file != null) { //기존의 파일이 있으면 지우게 하도록 if문을 만든다.
+							//FileHandler를 호풀한 후 기존파일(썸네일도)을 삭제.
+							FileHandler fileHandler = new FileHandler();
+							isOk = fileHandler.deleteFile(old_file, savePath);
+							}
+							//경로 전체이름 설정
+							String fileName = item.getName().substring(item.getName().lastIndexOf("/")+1);
+							log.info(">>> new_fileName : "+fileName);
+							//실제 저장이름
+							fileName = System.currentTimeMillis()+""+fileName; 
+							log.info(">>> 실제경로!new_fileName : "+fileName);
+							File uploadFilePath = new File(fileDir+File.separator+fileName);
+							try {
+								item.write(uploadFilePath);
+								bvo.setImage(fileName);
+								log.info(">>> bvo.image : "+bvo.getImage());
+								Thumbnails.of(uploadFilePath).size(75, 75).toFile(new File(fileDir+File.separator+"th_"+fileName));
+								
+							} catch (Exception e) {
+								log.info(">>> error~~~  file update on disk Fail!!!");
+								e.printStackTrace();
+							}
+						}else {
+							bvo.setImage(old_file);
+						}
+						break;
+					default:
+						break;
+					}
+				}
+				
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+			bsv.update(bvo);
+			destPage ="page";
+			break;
+		case "remove":
+			num = Integer.parseInt(request.getParameter("num"));
+			// 파일 삭제 추가
+			
+			bsv.remove(num);
+			destPage ="page";
+			break;
+		default:
+			break;
+		}
+		rdp = request.getRequestDispatcher(destPage);
+		rdp.forward(request, response);
+	}
+
+	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		
+		service(request, response);
+	}
+
+	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		
+		service(request, response);
+	}
+
+}

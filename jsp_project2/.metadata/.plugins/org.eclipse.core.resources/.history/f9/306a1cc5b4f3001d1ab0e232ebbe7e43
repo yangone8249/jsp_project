@@ -1,0 +1,22 @@
+package repository;
+
+import org.apache.ibatis.session.SqlSession;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import orm.DatabaseBuilder;
+import service.BoardServiceImpl;
+import service.MemberServiceImpl;
+
+public class BoardDAOImpl implements BoardDAO {
+	private static final Logger log = LoggerFactory.getLogger(BoardServiceImpl.class);
+	private SqlSession sql;
+	//NameSpace = SQL이 mapper를 구분하기 위한 이름이다.
+	//NameSpace.SQL 구문이름을 적는다.
+	private String NS = "MemberMapper.";
+	
+	public BoardDAOImpl() {
+		new DatabaseBuilder();
+		sql = DatabaseBuilder.getFactory().openSession();
+	}
+}

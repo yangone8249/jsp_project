@@ -1,0 +1,288 @@
+package controller;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.Iterator;
+import java.util.List;
+
+import javax.servlet.RequestDispatcher;
+import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.apache.commons.fileupload.FileItem;
+import org.apache.commons.fileupload.disk.DiskFileItemFactory;
+import org.apache.commons.fileupload.servlet.ServletFileUpload;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import domain.BoardVO;
+import domain.PagingVO;
+import handler.FileHandler;
+import handler.PagingHandler;
+import net.coobird.thumbnailator.Thumbnails;
+import service.BoardService;
+import service.BoardServiceImpl;
+
+
+@WebServlet("/brd/*")
+public class BoardController extends HttpServlet {
+	private static final long serialVersionUID = 1L;
+    private static final Logger log = LoggerFactory.getLogger(BoardController.class);
+    private RequestDispatcher rdp;
+    private BoardService bsv;
+    private int isOk;
+    private String destPage;
+    private BoardVO bvo;
+
+    
+    public BoardController() {
+        bsv = new BoardServiceImpl();
+       
+    }
+
+
+	protected void service(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		request.setCharacterEncoding("utf-8");
+    	response.setContentType("text/html; charset=utf-8");
+    	
+    	String uri = request.getRequestURI();
+    	log.info(">>> uri : "+uri);
+    	String path = uri.substring(uri.lastIndexOf("/")+1);
+    	log.info(">>> path : "+path);
+    	
+    	
+    	switch (path) {
+		case "create":
+			try {
+				
+				String savePath = getServletContext().getRealPath("/_fileUpload");
+				log.info(">>> 파일저장경로 : "+savePath); //실제 파일경로를 출력
+				File fileDir = new File(savePath); //파일경로를 File객체에 담아서 저장
+				
+				DiskFileItemFactory fileItemFactory = new DiskFileItemFactory(); // commons 라이브러리 사용
+				fileItemFactory.setRepository(fileDir); //setPepository에 파일위치를 지정
+				fileItemFactory.setSizeThreshold(2*1024*1024); // file의 임시메모리 지정 (2MB)
+				
+				BoardVO bvo = new BoardVO(); // 빈 생성자 만든 후 각 데이터를 setter하고, mapper쿼리 전달
+				// multipart/form-data 형식으로 넘어온 request의 객체를 다루기 쉽게 변환해주는 ServletFileUpload 객체 사용
+				ServletFileUpload fileUpload = new ServletFileUpload(fileItemFactory);
+				
+				List<FileItem> itemList = fileUpload.parseRequest(request);//fileItem객체를 List형식으로 저장
+				for(FileItem item : itemList) {//List로 정렬된 FileItem에 대한 객체를 하나씩 반복
+					switch (item.getFieldName()) { 
+					case "title":
+						bvo.setTitle(item.getString("utf-8")); //item에 대한 값을 문자열로 추출 후 setTitle로 적용(encoding:UTF-8지정)
+						break;
+					case "writer":
+						bvo.setWriter(item.getString("utf-8"));
+						break;
+					case "content":
+						bvo.setContent(item.getString("utf-8")); 
+						break;
+					case "image_file":
+						//선택사항이기때문에 if문으로 확인
+						if (item.getSize() > 0) {
+							String fileName = item.getName().substring(item.getName().lastIndexOf("/")+1);
+							fileName = System.currentTimeMillis()+"_"+fileName;
+							log.info(">>> fileName : "+fileName); //"현재시간"_"파일명"으로 저장됨.
+							File uploadFilePath = new File(fileDir+File.separator+fileName);					
+							log.info(">>> 실제파일경로 : "+uploadFilePath); //File객체를 생성하며, "파일경로"+"\"+"파일명"
+							try {
+								item.write(uploadFilePath); //writer메서드로 객체를 Disk에 저장
+								bvo.setImage_file(fileName); //파일의 경로만 bvo의 image_file에 set한다.
+								
+								Thumbnails.of(uploadFilePath).size(75, 75).toFile(fileDir+File.separator+"th_"+fileName);
+								//썸네일에 실제 파일경로를 지정
+								//.size() : 저장할 썸네일의 파일 사이즈를 지정
+								
+							} catch (Exception e) {
+								log.info("file writer on disk error");
+								e.printStackTrace();
+							}
+						}
+						break;
+					default:
+						break;
+					}
+					
+				}
+				bsv.insert(bvo);
+				log.info("게시글 작성완료!");
+				
+			} catch (Exception e) {
+				log.info("create error");
+				e.printStackTrace();
+			}
+			destPage = "page";
+			break;
+		case "page":
+			try {
+				int pageNo = 1;
+				int qty = 10;
+				String type = "";
+				String keyword = "";
+				
+				log.info("pageNo : "+request.getParameter("pageNo"));
+				if(request.getParameter("pageNo") != null) {
+					pageNo = Integer.parseInt(request.getParameter("pageNo"));
+					qty = Integer.parseInt(request.getParameter("qty"));
+					log.info("type : "+type);
+					log.info("keyword : "+keyword);
+				}
+				if(request.getParameter("type") != null) {
+					type = request.getParameter("type");
+					keyword = request.getParameter("keyword");
+				}
+				PagingVO pgvo = new PagingVO(pageNo, qty);
+				pgvo.setType(type); //Search할 타입, keyword를 set으로 지정한다.
+				pgvo.setKeyword(keyword);
+				log.info(pgvo.toString());
+				
+				//전체 페이지 개수
+				int totCount = bsv.getTotal(pgvo); //전체 페이지 개수를 요청
+				log.info("totCount : "+totCount);
+				//limit를 이용한 selectList를 호출 (StartPage, qty)
+				List<BoardVO> list = bsv.getPageList(pgvo);
+				log.info("List : "+list.size()); //한페이지에 나와야하는 리스트 출력
+				PagingHandler ph = new PagingHandler(pgvo, totCount);
+				
+				request.setAttribute("pgh", ph);
+				request.setAttribute("list", list);
+				log.info("pageList성공!!");
+				destPage = "/board/BoardList.jsp";
+				
+			} catch (Exception e) {
+				log.info("page error");
+				e.printStackTrace();
+			}
+			break;
+		case "detail":
+			try {
+				request.setAttribute("detail", bsv.detail(Integer.parseInt(request.getParameter("bno"))));
+				bsv.count(Integer.parseInt(request.getParameter("bno")));
+			} catch (Exception e) {
+				log.info("detail error");
+				e.printStackTrace();
+			}			
+			destPage = "/board/BoardDetail.jsp";
+			break;
+		case "update":
+				try {
+					request.setAttribute("update", bsv.detail(Integer.parseInt(request.getParameter("bno"))));
+				} catch (Exception e) {
+					log.info("detail error");
+					e.printStackTrace();
+				}	
+			destPage = "/board/BoardUpdate.jsp";
+			break;
+		case "modify":
+			try {
+				log.info(">>> title : "+request.getParameter("title"));
+				log.info(">>> bno : "+request.getParameter("bno"));
+				log.info(">>> content: "+request.getParameter("content"));
+				String savePath = getServletContext().getRealPath("/_fileUpload");
+				//eclipse에 있는 _fileUpload폴더안에 저장하기위한 경로 설정
+				File fileDir = new File(savePath);
+				
+				DiskFileItemFactory fileItemFactory = new DiskFileItemFactory();
+				fileItemFactory.setRepository(fileDir);// fileUpload폴더 경로를 설정
+				fileItemFactory.setSizeThreshold(2*1024*1024); //2MB로 저장공간 확보
+				
+				BoardVO bvo = new BoardVO();
+				
+				ServletFileUpload fileUpload = new ServletFileUpload(fileItemFactory);
+				//form-data를 사용하기위한 데이터로 형변환해줌.
+				log.info(">>> update준비!");
+				
+				List<FileItem> itemList = fileUpload.parseRequest(request);
+				String old_file = null; //기존 파일에 대한 정보
+				for(FileItem item : itemList) {
+					switch (item.getFieldName()) {
+					case "bno":
+						bvo.setBno(Integer.parseInt(item.getString("utf-8")));
+						break;
+					case "title":
+						bvo.setTitle((item.getString("utf-8")));
+						break;
+					case "writer":
+						bvo.setWriter((item.getString("utf-8")));
+						break;
+					case "content":
+						bvo.setContent((item.getString("utf-8")));
+						break;
+					case "image_file":
+						old_file = item.getString("utf-8");//기존 파일의 이름을 가져와서 담기!
+						break;
+					case "new_file":
+						if(item.getSize()>0) {
+							if(old_file != null) {
+								FileHandler fileHandler = new FileHandler();
+								isOk = fileHandler.deleteFile(old_file, savePath);
+							}
+							//경로 전체이름 설정
+							String fileName = item.getName().substring(item.getName().lastIndexOf("/")+1);
+							log.info(">>> new_fileName : "+ fileName);
+							//실제 저장이름
+							fileName = System.currentTimeMillis()+""+fileName;
+							log.info(">>> 실제경로 new_fileName : "+fileName);
+							File uploadFilePath = new File(fileDir+File.separator+fileName);
+							try {
+								item.write(uploadFilePath);
+								bvo.setImage_file(fileName);
+								log.info(">>> bvo.image : "+bvo.getImage_file());
+								Thumbnails.of(uploadFilePath).size(75, 75).toFile(new File(fileDir+File.separator+"th_"+fileName));
+								
+							} catch (Exception e) {
+								log.info(">>> error~~~  file update on disk Fail!!!");
+								e.printStackTrace();
+							}
+						}else {
+							bvo.setImage_file(old_file);
+						}
+						break;
+					default:
+						break;
+					}
+				}
+				bsv.update(bvo);
+			} catch (Exception e) {
+				log.info("modify error");
+				e.printStackTrace();
+			}
+			
+			destPage = "page";
+			break;
+		case "remove":
+			try {
+				bsv.remove(Integer.parseInt(request.getParameter("bno")));
+			} catch (Exception e) {
+				log.info("detail error");
+				e.printStackTrace();
+			}
+			
+			destPage = "page";
+			break;
+		default:
+			break;
+		}
+    	log.info(">>> destPage : "+destPage);
+    	rdp = request.getRequestDispatcher(destPage);
+    	rdp.forward(request, response);
+	}
+
+
+	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		
+		service(request, response);
+	}
+
+
+	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+	
+		service(request, response);
+	}
+
+}

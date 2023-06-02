@@ -1,0 +1,12 @@
+DLTK_comment_task_tag_strikethrough=false
+DLTK_comment_task_tag_underline=true
+DLTK_function_definition_bold=true
+DLTK_keyword_return_strikethrough=false
+DLTK_keyword_return_underline=false
+DLTK_keyword_strikethrough=false
+DLTK_keyword_underline=false
+DLTK_number_bold=false
+DLTK_string_bold=false
+DLTK_string_strikethrough=false
+DLTK_string_underline=false
+eclipse.preferences.version=1

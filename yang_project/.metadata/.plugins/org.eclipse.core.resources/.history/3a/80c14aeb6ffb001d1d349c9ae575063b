@@ -1,0 +1,37 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+    pageEncoding="UTF-8"%>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c"%>
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>메인페이지</title>
+</head>
+<body>
+	<h1>메인페이지</h1>
+	<hr><br>
+	<div>
+	
+		<c:if test="${ses.id eq null}">	
+		<a href="/member/MemberCreate.jsp"><button type="button">회원가입</button></a>
+		<a href="/member/MemberLogin.jsp"><button type="button">로그인</button></a>
+		</c:if>
+		<c:if test="${ses.id ne null}">
+		<a href="/member/MemberCreate.jsp"><button type="button">게시글작성</button></a>
+		<a href="/member/MemberLogin.jsp"><button type="button">게시글목록</button></a>
+		<a href="/mem/logout"><button type="button">로그아웃</button></a>
+		<a href="/member/MemberLogin.jsp"><button type="button">회원탈퇴</button></a>
+		<c:if test="${ses.id eq yang }">
+			<a href="/member/MemberLogin.jsp"><button type="button">회원목록</button></a>
+		</c:if>
+		</c:if>
+	</div>
+	<script type="text/javascript">
+	
+	if(${loginCancle}==0){
+		alert("로그인 실패");
+	}
+	
+	</script>
+</body>
+</html>

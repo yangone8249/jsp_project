@@ -1,0 +1,77 @@
+package handler;
+
+import domain.PagingVO;
+
+public class PagingHandler {
+	
+	private int startPage; //현재 화면에서 보여줄 시작 페이지네이션 번호
+	private int endPage; //현재 화면에서 보여줄 끝 페이지네이션 번호
+	private boolean prev, next; //이전, 다음버튼 존재여부
+	
+	private int totalCount; //총 게시물 수
+	private PagingVO pgvo; 
+	
+	public PagingHandler(PagingVO pgvo, int totalCount) {
+		this.pgvo = pgvo;
+		this.totalCount = totalCount;
+		//나머지 값 계산
+		//127개의 게시글 페이지네이션 번호
+		//1~13 까지 필요하다고 가정할 시 
+		//현재페이지에 보이는 화면 : startPage, endPage는 1부터~10까지이다. 나머지는 (다음)버튼으로 처리
+		//11페이지에 보이는 화면 : (이전버튼) startPage=11, endPage=13
+		this.endPage = (int)Math.ceil(pgvo.getPageNo() / (float)(pgvo.getQty()))*pgvo.getQty();
+				//현재 페이지번호의 "/" 나누기한 화면의 게시굴 수 (*)곱하기한 화면의 게시글 수  ====== 공식이니까 외워야함!!
+		//주의 : 현재페이지, 화면게시글 수 나누기할때 꼭 실수로 나눠야한다. (float)사용하거나 *1.0해야함.
+				//ex) (1/10) *10 => 1/10 : 0.1(올림으로 1이됨),,,,  0.1(올림으로 1이됨)*10 : 10
+				//ex) (2/10) *10 => 2/10 : 0.2(올림으로 1이됨),,,,  0.2(올림으로 1이됨)*10 : 10
+				// 1~0페이지까지 endPage = 10
+				// 11~13페이지까지 endPage = 13
+		this.startPage = this.endPage-9;
+		//페이지네이션의 전체 끝 페이지
+		int realEndPage = (int)(Math.ceil((totalCount*1.0) / pgvo.getQty()));
+		if(realEndPage < this.endPage) {
+			this.endPage = realEndPage;
+		}
+		//현재화면에서 보여지는 startPage =1, 11, 21
+		this.prev = this.startPage > 1; //존재여부 
+		this.next = this.endPage < realEndPage;
+		
+	}
+	public int getStartPage() {
+		return startPage;
+	}
+	public int getEndPage() {
+		return endPage;
+	}
+	public void setEndPage(int endPage) {
+		this.endPage = endPage;
+	}
+	public boolean isPrev() {
+		return prev;
+	}
+	public void setPrev(boolean prev) {
+		this.prev = prev;
+	}
+	public boolean isNext() {
+		return next;
+	}
+	public void setNext(boolean next) {
+		this.next = next;
+	}
+	public int getTotalCount() {
+		return totalCount;
+	}
+	public void setTotalCount(int totalCount) {
+		this.totalCount = totalCount;
+	}
+	public PagingVO getPgvo() {
+		return pgvo;
+	}
+	public void setPgvo(PagingVO pgvo) {
+		this.pgvo = pgvo;
+	}
+	public void setStartPage(int startPage) {
+		this.startPage = startPage;
+	}
+	
+}

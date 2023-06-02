@@ -1,0 +1,23 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+    pageEncoding="UTF-8"%>
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>수정 페이지</title>
+</head>
+<body>
+		<h1>글 수정 페이지</h1>
+		<hr><br>
+		<form action="/brd/modify?bno=${update.bno }" method="post" enctype="multipart/form-data">
+		제목 : <input type="text" name="title" value="${update.title }"><br>
+		작성자 : <input type="text" name="writer" value="${update.writer }" readonly="readonly"/><br>
+		내용 : <textarea name="content" >${update.content }</textarea><br>
+		이미지 : <img alt="없음" src="/_fileUpload/th_${update.image_file}"><br>
+				<input type="hidden" name="image_file" value="${update.image_file}"><br>
+				<input type="file" name="new_file">
+			<button type="submit">글 수정하기</button>
+		</form>
+		<a href="/brd/detail?bno=${update.bno }"><button type="button">뒤로가기</button></a>
+</body>
+</html>

@@ -1,0 +1,19 @@
+package service;
+
+import domain.BoardVO;
+
+public class BoardServiceImpl implements BoardService {\
+	
+	private BoardDAO bdao;
+
+	public BoardServiceImpl() {
+		bdao = new BoardBDAOImpl();
+	}
+
+	@Override
+	public int insert(BoardVO bvo) {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
+}

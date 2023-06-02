@@ -1,0 +1,135 @@
+package controller;
+
+import java.io.IOException;
+import java.util.List;
+
+import javax.security.auth.message.callback.PrivateKeyCallback.Request;
+import javax.servlet.RequestDispatcher;
+import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+
+import org.slf4j.Logger; //Logger를 import하는데 꼭 org.slf4j으로 지정해야한다.
+import org.slf4j.LoggerFactory;
+
+import com.mysql.cj.Session;
+
+import domain.BoardVO;
+import service.BoardService;
+import service.BoardServiceImpl;
+
+@WebServlet("/brd/*") //경로설정, brd/(아무거나) 오게 지정함.
+public class BoardController extends HttpServlet {
+	private static final long serialVersionUID = 1L; //serialVersionUID는 원래 자동등록됨.
+	private static final Logger log = LoggerFactory.getLogger(BoardController.class);
+    private RequestDispatcher rdp; // 웹의 목적지 주소로 객체를 전달해주는 객체이다.
+    private String destPage; // 목적지 주소를 저장해주는 변수
+	private int isOk; //db의 실행구문에 대한 결과를 받는 변수
+	private BoardService bsv; // BoardService 인터페이스 생성
+	private HttpSession ses;
+	private BoardVO bvo;
+    
+    public BoardController() {
+    	bsv = new BoardServiceImpl(); //BoardService interface에 대한 구현체.
+    
+    }
+    
+	protected void service(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		//캐릭터 인코딩 설정, 콘텐츠 타입 설정
+		request.setCharacterEncoding("utf-8"); //request에 대한 인코딩을 utf-8로 지정
+		response.setCharacterEncoding("utf-8"); //request에 대한 인코딩을 utf-8로 지정
+		response.setContentType("text/html; charset=utf-8"); 
+		
+		String uri = request.getRequestURI(); //request받은 URI 추출
+		log.info(">>> uri : "+uri);
+		String path = uri.substring(uri.lastIndexOf("/")+1); //request받은 URI의 path값 추출
+		log.info(">>> path : "+path);
+		
+		switch(path) {
+		case "register":
+			destPage = "/board/register.jsp";
+			break;
+		case "insert":
+			String title = request.getParameter("title");
+			String writer = request.getParameter("writer");
+			String content = request.getParameter("content");
+			log.info(">>> insert : "+content);
+			//register(title, writer, content)
+			BoardVO bvo = new BoardVO	(title, writer, content);
+			request.setAttribute("title", title);
+			request.setAttribute("writer", writer);
+			request.setAttribute("content", content);
+
+			 bsv.insert(bvo);
+
+			destPage = "/board/list.jsp";
+			break;
+		case "list":
+			log.info(">>> list 진입!");
+			//list(bno, title, writer, reg_date)
+			List<BoardVO> list = bsv.list();
+			
+			request.setAttribute("list", list);
+			destPage = "/board/list.jsp";
+			break;
+		case "index":
+			destPage = "/";
+			break;
+		case "modify":
+			request.setAttribute("count", request.getParameter("count"));
+			request.setAttribute("title", request.getParameter("title"));
+			request.setAttribute("writer", request.getParameter("writer"));
+			request.setAttribute("content", request.getParameter("content"));
+			destPage = "/board/modify.jsp";
+			break;
+		case "update":
+			int num = request.getParameter("count");
+			title = request.getParameter("title");
+			content = request.getParameter("content");
+			
+			log.info((String)num);
+			log.info(title);
+			log.info(content);
+			BoardVO bvo2 = new BoardVO(num,title,content);
+			//update(bno, title, content)
+			bsv.update(bvo2);
+
+			destPage = "/board/list.jsp";
+			
+			break;
+		case "detail":
+			request.setAttribute("count", request.getParameter("count"));
+			request.setAttribute("title", request.getParameter("title"));
+			request.setAttribute("writer", request.getParameter("writer"));
+			request.setAttribute("content", request.getParameter("content"));
+			request.setAttribute("regdate", request.getParameter("regdate"));
+			destPage = "/board/detail.jsp";
+			
+			break;
+		case "remove":
+			
+//			bsv.remove();
+			destPage = "/board/list.jsp";
+			break;
+		default:
+				break;
+		}
+		
+		rdp = request.getRequestDispatcher(destPage); // RequestDispatcher에 destPage변수를 대입하여
+		rdp.forward(request, response); // RequestDispatcher.forward 메서드에 request와 response를 매개변수로 지정한다.
+	}
+
+	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+	
+		service(request, response); //service에 대한 request, response로 수정
+	}
+
+	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+
+		service(request, response); //service에 대한 request, response로 수정
+	}
+
+}

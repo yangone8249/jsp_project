@@ -1,0 +1,116 @@
+package domain;
+
+public class ProductVO {
+/*      pno int auto_increment,
+     pname varchar(20),
+     price int,
+     regdate datetime default now(),
+     madeby varchar(45),
+
+ */
+	private int pno;
+	private String pname;
+	private int price;
+	private String regdate;
+	private String madeby;
+	
+	public ProductVO() {}
+	
+
+
+	public ProductVO(String pname, int price, String madeby) { // 상품등록 생성자
+		super();
+		this.pname = pname;
+		this.price = price;
+		this.madeby = madeby;
+	}
+
+
+
+	public ProductVO(int pno, String pname, String regdate) { // 상품리스트 생성자
+		super();
+		this.pno = pno;
+		this.pname = pname;
+		this.regdate = regdate;
+	}
+
+
+
+	public ProductVO(int pno, String pname, int price, String madeby) { // 상품수정 생성자
+		super();
+		this.pno = pno;
+		this.pname = pname;
+		this.price = price;
+		this.madeby = madeby;
+	}
+
+
+
+	public ProductVO(int pno, String pname, int price, String regdate, String madeby) { // 상품상세페이지 생성자
+		super();
+		this.pno = pno;
+		this.pname = pname;
+		this.price = price;
+		this.regdate = regdate;
+		this.madeby = madeby;
+	}
+
+
+
+	@Override
+	public String toString() {
+		return "ProductVO [pno=" + pno + ", pname=" + pname + ", price=" + price + ", regdate=" + regdate + ", madeby="
+				+ madeby + "]";
+	}
+
+	public int getPno() {
+		return pno;
+	}
+
+	public void setPno(int pno) {
+		this.pno = pno;
+	}
+
+	public String getPname() {
+		return pname;
+	}
+
+	public void setPname(String pname) {
+		this.pname = pname;
+	}
+
+	public int getPrice() {
+		return price;
+	}
+
+	public void setPrice(int price) {
+		this.price = price;
+	}
+
+	public String getRegdate() {
+		return regdate;
+	}
+
+	public void setRegdate(String regdate) {
+		this.regdate = regdate;
+	}
+
+	public String getMadeby() {
+		return madeby;
+	}
+
+	public void setMadeby(String madeby) {
+		this.madeby = madeby;
+	}
+	
+	// 상품등록 pname, price, madeby (num, date는 기본값 자동적용)
+	
+	// 상품리스트 pno, pname, regdate
+	
+	// 상품수정 pno, pname, price, madeby
+	
+	// 상품상세 (찾기) all
+	
+	// 상품삭제
+	
+}
