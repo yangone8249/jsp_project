@@ -1,5 +1,0 @@
-package orm;
-
-public class DatabaseConnector {
-	private static DatabaseConnector dbc = 
-}

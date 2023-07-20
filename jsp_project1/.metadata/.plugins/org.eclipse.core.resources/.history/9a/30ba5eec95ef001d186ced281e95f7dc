@@ -1,7 +1,0 @@
-package service;
-
-import java.security.Provider.Service;
-
-public class ProductService extends Service {
-
-}
