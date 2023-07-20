@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<Configuration status="DEBUG"> <!-- debug 상태로 진행 -->
-	<appenders>
-		<console name="Console">
-			
-		</console>
-	</appenders>
-</Configuration>
