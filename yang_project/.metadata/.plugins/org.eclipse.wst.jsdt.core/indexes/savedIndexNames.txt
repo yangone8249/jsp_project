@@ -1,8 +1,0 @@
-INDEX VERSION 1.4+D:\_jsp_workspace\yang_project\.metadata\.plugins\org.eclipse.wst.jsdt.core\indexes
-2362403689.index
-4200033533.index
-3657390510.index
-2097679553.index
-1027530082.index
-781750505.index
-319665614.index
