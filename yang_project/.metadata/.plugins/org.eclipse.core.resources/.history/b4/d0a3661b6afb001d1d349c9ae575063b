@@ -1,6 +1,0 @@
-package repository;
-
-public class MemberDAOImpl implements MemberDAO{
-	private static final Logger log = LoggerFactory.getLogger(MemberServiceImpl.class);
-
-}
